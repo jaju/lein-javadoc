@@ -48,8 +48,8 @@ if you prefer). The map can have the following keys:
   exists as a safety valve, in case this task does not currently
   support some combination of configuration options you really need.
 - `:jdk-home`: This key is a string indicating the path to the JDK
-  home, used for determining the location of the `java` command and
-  tools.jar. This should include the `jre` directory, as in
+  home, used for determining the location of the `javadoc` command.
+  This should include the `jre` directory, as in 
   `"/usr/lib/jvm/jdk-8-oracle-x64/jre"`.
 - `:javadoc-cmd`: This key is a string indicating the path to the `javadoc`
   command. If not supplied, defaults to these in order:
