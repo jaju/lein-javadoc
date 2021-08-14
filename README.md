@@ -1,7 +1,7 @@
 # lein-javadoc
 
 Use Leiningen to build the javadoc for the java source code in your projects.
-Forked from - (davidsantiago/lein-javadoc)[https://github.com/davidsantiago/lein-javadoc]
+Forked from - [davidsantiago/lein-javadoc](https://github.com/davidsantiago/lein-javadoc)
 
 ## How it differs from the original?
 The newer JDKs (after 8) don't explicitly have `tools.jar` available - it is bundled differently.
