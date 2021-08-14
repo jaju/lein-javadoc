@@ -1,10 +1,15 @@
 # lein-javadoc
 
 Use Leiningen to build the javadoc for the java source code in your projects.
+Forked from - (davidsantiago/lein-javadoc)[https://github.com/davidsantiago/lein-javadoc]
+
+## How it differs from the original?
+The newer JDKs (after 8) don't explicitly have `tools.jar` available - it is bundled differently.
+But JDKs do supply the `javadoc` binary. We use the `javadoc` instead.
 
 ## Usage
 
-Put `[lein-javadoc "0.3.0"]` into the `:plugins` vector of your project.clj.
+Put `[org.msync/lein-javadoc "0.4.0-SNAPSHOT"]` into the `:plugins` vector of your project.clj.
 
 For this plugin to do anything, you need to add a map of configuration
 options to the `:javadoc-opts` key of your project map (or a profile
@@ -46,36 +51,25 @@ if you prefer). The map can have the following keys:
   home, used for determining the location of the `java` command and
   tools.jar. This should include the `jre` directory, as in
   `"/usr/lib/jvm/jdk-8-oracle-x64/jre"`.
-- `:java-cmd`: This key is a string indicating the path to the `java`
+- `:javadoc-cmd`: This key is a string indicating the path to the `javadoc`
   command. If not supplied, defaults to these in order:
-    - `../bin/java` relative to `:jdk-home`, if present;
-    - value of `JAVA_CMD` in the environment;
-    - the constant `java`.
-- `:tools-jar-paths`: This key is a vector of strings pointing to
-  possible locations of tools.jar. If empty or missing, defaults to
-  these in order:
-    - `../lib/tools.jar` relative to `:jdk-home`, if present;
-    - `../lib/tools.jar` relative to current JVM's `java.home`
-      property.
+    - `../bin/javadoc` relative to `:jdk-home`, if present;
+    - value of `JAVADOC_CMD` in the environment;
+    - the constant `javadoc`.
 
 Also note that you must have the JDK installed for this task to work,
-as Javadoc is a part of the JDK's lib/tools.jar. This plugin should
-add that jar to the classpath automatically, but it must be present.
+as Javadoc is a part of the JDK.
 
 Once the plugin is configured for your project, you can invoke the
-`javadoc` task to write the javadoc output to the configured
-directory.
+`javadoc` task to write the javadoc output to the configured directory.
 
     $ lein javadoc
 
-To use an alternative JDK, use `JAVA_CMD` with lein:
+To use an alternative `javadoc` program, use `JAVADOC_CMD` with lein:
 
-    $ JAVA_CMD=/usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/java lein javadoc
+    $ JAVADOC_CMD=/usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/javadoc lein javadoc
 
-By default this will have the effect of using both the java binary and
-the tools.jar from the specified JDK. (In other uses, be sure to align
-the source of the java binary and the source of tools.jar to ensure
-compatibility.)
+By default this will have the effect of using the javadoc binary from the specified JDK.
 
 ## License
 
@@ -84,5 +78,6 @@ Copyright © 2013 David Santiago
 Other contributors:
 
 - Tim McCormack
+- Ravindra Jaju
 
 Distributed under the Eclipse Public License, the same as Clojure.

@@ -2,8 +2,7 @@
   (:require [leiningen.core.main :refer [abort]]
             [leiningen.core.classpath :as lein-cp]
             [clojure.string :as str]
-            [clojure.java.io :as io]
-            [clojure.java.shell :as sh]))
+            [clojure.java.io :as io]))
 
 (defn getenv
   "Wrap System/getenv(String) for testing."
@@ -25,15 +24,10 @@ not found."
     (when (.exists (io/file f))
       (.getCanonicalPath f))))
 
-(defn tools-jar
-  "Yield the canonical path to the JDK tools.jar file, or nil if not found."
+(defn javadoc-bin
+  "Yield the canonical path to the javadoc binary, or nil if not found."
   [jdk-home-path]
-  (canonical-path [jdk-home-path ".." "lib" "tools.jar"]))
-
-(defn java-bin
-  "Yield the canonical path to the java binary, or nil if not found."
-  [jdk-home-path]
-  (canonical-path [jdk-home-path ".." "bin" "java"]))
+  (canonical-path [jdk-home-path ".." "bin" "javadoc"]))
 
 ;;;; lein-javadoc
 
@@ -43,13 +37,12 @@ not found."
   (let [javadoc-opts (:javadoc-opts project)]
     {:output-dir (get javadoc-opts :output-dir "javadoc/")
      :java-source-paths (get javadoc-opts :java-source-paths
-                            (get project :java-source-paths))
+                          (get project :java-source-paths))
      :package-names (get javadoc-opts :package-names)
      :additional-args (get javadoc-opts :additional-args)
      :exact-command-line (get javadoc-opts :exact-command-line)
      :jdk-home (get javadoc-opts :jdk-home)
-     :java-cmd (get javadoc-opts :java-cmd)
-     :tools-jar-paths (get javadoc-opts :tools-jar-paths)}))
+     :javadoc-cmd (get javadoc-opts :javadoc-cmd)}))
 
 (defn check-options
   "Check the javadoc options and print a few diagnostics/warnings. Returns true
@@ -66,43 +59,30 @@ not found."
 (defn opts->args
   [javadoc-opts]
   (or (:exact-command-line javadoc-opts)
-      (concat ["-d"
-               (:output-dir javadoc-opts)
-               "-sourcepath"
-               (str/join ":"
-                         (:java-source-paths javadoc-opts))
-               "-subpackages"
-               (str/join ":"
-                         (:package-names javadoc-opts))]
-              (:additional-args javadoc-opts))))
+    (concat ["-d"
+             (:output-dir javadoc-opts)
+             "-sourcepath"
+             (str/join ":"
+               (:java-source-paths javadoc-opts))
+             "-subpackages"
+             (str/join ":"
+               (:package-names javadoc-opts))]
+      (:additional-args javadoc-opts))))
 
-(defn java-cmd-path
-  "Determine a path for shelling out to java."
+(defn javadoc-cmd-path
+  "Determine a path for shelling out to javadoc."
   [javadoc-opts]
-  (or (:java-cmd javadoc-opts)
-      (when-let [jh (:jdk-home javadoc-opts)]
-        (java-bin jh))
-      (getenv "JAVA_CMD")
-      "java"))
-
-(defn tools-classpath
-  "Construct a tools.jar-containing classpath coll or die trying."
-  [javadoc-opts]
-  (if-let [paths (not-empty (:tools-jar-paths javadoc-opts))]
-    (if (string? paths)
-      (abort ":javadoc-opts :tools-jar-paths must be a collection of strings, not a single string. (May also be empty or nil.)")
-      paths)
-    [(or (when-let [jh (:jdk-home javadoc-opts)]
-           (tools-jar jh))
-         (tools-jar (getprop "java.home"))
-         (abort "No tools.jar found in system or specified in project, cannot run javadoc."))]))
+  (or (:javadoc-cmd javadoc-opts)
+    (when-let [jh (:jdk-home javadoc-opts)]
+      (javadoc-bin jh))
+    (getenv "JAVADOC_CMD")
+    "javadoc"))
 
 (defn make-classpath
   [project javadoc-opts]
   (concat
-   (lein-cp/get-classpath project)
-   (tools-classpath javadoc-opts)
-   (:java-source-paths javadoc-opts)))
+    (lein-cp/get-classpath project)
+    (:java-source-paths javadoc-opts)))
 
 (defn run-javadoc
   [sh-args]
@@ -111,8 +91,8 @@ not found."
             (.start pb)
             (catch java.io.IOException e
               (abort (str "Failed to find " (first sh-args)
-                          " command.\n"
-                          (.getMessage e)))))]
+                       " command.\n"
+                       (.getMessage e)))))]
     (.waitFor p)
     (let [exit (.exitValue p)]
       (when (pos? exit)
@@ -125,9 +105,8 @@ not found."
     (when (check-options javadoc-opts)
       (let [jd-args (opts->args javadoc-opts)
             cp (make-classpath project javadoc-opts)
-            java-cmd (java-cmd-path javadoc-opts)
-            sh-args (list* java-cmd
-                           "-cp" (str/join \: cp)
-                           "com.sun.tools.javadoc.Main"
-                           jd-args)]
+            javadoc-cmd (javadoc-cmd-path javadoc-opts)
+            sh-args (list* javadoc-cmd
+                      "-cp" (str/join \: cp)
+                      jd-args)]
         (run-javadoc sh-args)))))
